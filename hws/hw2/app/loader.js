@@ -113,11 +113,8 @@ async.series([
                     client.execute(upsertUser,
                         [obj.username, obj.fullname, obj.pass],
                         afterExecution('Error: ', 'User ' + obj.username + ' upserted.'));
+                        //Update edges
                     for (var i in obj.followers) {
-
-        /////////
-        // HINT: UPDATE USER RELATIONS TO USERS FOLLOWED BY USER obj
-        /////////
                       client.execute(upsertSrcDest,
                           [obj.username, obj.followers[i]],
                           afterExecution('Error: ', 'Users_src_dest ' + obj.username + ' ' + i +' upserted.'));
@@ -148,9 +145,6 @@ async.series([
                     [obj.tweetid, obj.username, obj.created_at, obj.text],
                     afterExecution('Error: ', 'Tweet ' + obj.tweetid + ' upserted.'));
 
-    /////////
-    // HINT: UPDATE TIMELINES CONTAINING TWEET obj
-    /////////
             //Gets the users following the user creating the tweet
             var followers = AM.getFollowers(obj.username, function(err, o){
                 if (err != null)
