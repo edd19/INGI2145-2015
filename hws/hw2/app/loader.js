@@ -32,10 +32,11 @@ async.series([
     },
     function createTweetTable(next) {
         var query = 'CREATE TABLE IF NOT EXISTS twitter.Tweets (' +
-                    'tweetid uuid PRIMARY KEY,' +
+                    'tweetid uuid,' +
                     'author varchar,' +
                     'created_at timestamp,' +
-                    'body text);';
+                    'body text,' +
+                    'PRIMARY KEY (author, tweetid) );';
         client.execute(query, next);
     },
     function createTimelineTable(next) {

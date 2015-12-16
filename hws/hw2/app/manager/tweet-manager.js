@@ -1,6 +1,7 @@
 var app = require('../app');
 var uuid = require('node-uuid');
 var async = require('async');
+var findHashtags = require('find-hashtags');
 
 var collectionName = "Tweets";
 
@@ -43,7 +44,7 @@ exports.newTweet = function(data, callback)
       },
       //Parse the hashtag in the tweet if any for the analytics part
       function(){
-
+        var hashtags = findHashtags(data.body);
       }
     ], function (err, results) { callback(err, data); });
   }
