@@ -208,15 +208,10 @@ exports.getUserTimelines = function(username, callback) {
 	// Invoke callback(null, tweets) where tweets are the feed from all followed accounts.
 	// If the query fails:
 	// Invoke callback(e, null)
-  var getSrc = "SELECT * FROM twitter.Users_dest_src WHERE dest=?"
-  app.db.execute(getSrc, [ username ], function(e, result) {
-		if (result.rows.length>0) {//checks if a result has been received
-      var tweets = [];
-      for (int i =0; i<result.rows.length;i++)//scans through result and adds every element to "tweets" list
-      {
-        tweets.push(results.rows[i]);
-      }
-      callback(null, tweets)
+  var getEverything = "SELECT tweetid, author, created_at, body FROM twitter.Timeline WHERE username=?"
+  app.db.execute(getInfo, [ username ], function(e, result) {
+		if (result.rows.length>0) {//checks if a result has been correctly received
+			callback(null, result.rows[0])
 		}
 		else{
 			callback(e, null);
@@ -231,7 +226,15 @@ exports.getUserlines = function(username, callback) {
 	// Invoke callback(null, tweets) where tweets are all the tweet of the account identified by username.
 	// If the query fails:
 	// Invoke callback(e, null)
-  
+  var getEverything = "SELECT * FROM twitter.Tweets WHERE author=?"
+  app.db.execute(getInfo, [ username ], function(e, result) {
+		if (result.rows.length>0) {//checks if a result has been correctly received
+			callback(null, result.rows[0])
+		}
+		else{
+			callback(e, null);
+		}
+	});
 }
 
 /* get User tweets */
