@@ -5,6 +5,8 @@ var uuid = require('node-uuid');
 var fs = require('fs');
 var byline = require('byline');
 var crypto    = require('crypto');
+var AM = require('./manager/account-manager.js');
+
 
 var client = new cassandra.Client( { contactPoints : [ '127.0.0.1' ] } );
 client.connect(function(err, result) {
@@ -149,7 +151,20 @@ async.series([
     /////////
     // HINT: UPDATE TIMELINES CONTAINING TWEET obj
     /////////
-
+            //Gets the users following the user creating the tweet
+            var followers = AM.getFollowers(obj.username, function(err, o){
+                if (err != null)
+                    return console.log(err);
+            });
+            var upsertTimeline = 'INSERT INTO twitter.Timeline (username, tweetid, author, created_at, body) '
+                + 'VALUES(?, ?, ?, ?, ?);';
+            //Add the tweet to each follower timeline
+            for (var i in followers)
+            {
+              client.execute(upsertTimeline,
+                      [followers[i], obj.tweetid, obj.username, obj.created_at, obj.text],
+                      afterExecution('Error: ', 'Timeline ' + followers[i] + ' ' +obj.tweetid + ' upserted.'));
+            }
         } catch (err) {
             console.log("Error:", err);
         }

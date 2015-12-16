@@ -73,12 +73,12 @@ exports.getFollowers = function(username, callback) {
 	// Invoke callback(e, null)
 
   var getUser = "SELECT * FROM twitter.Users_src_dest WHERE src=?";
+  var followers = [];
   app.db.execute(getUser, [ username ], function(e, result) {
 		if (result.rows.length>0) {//checks if a result has been received
-      var followers = [];
-      for (int i =0; i<result.rows.length;i++)//scans through result and adds every element to "followers" list
+      for (i =0; i<result.rows.length;i++)//scans through result and adds every element to "followers" list
       {
-        followers.push(results.rows[i]);
+        followers.push(result.rows[i]);
       }
       callback(null, followers)
 		}
@@ -86,6 +86,7 @@ exports.getFollowers = function(username, callback) {
 			callback(e, null);
 		}
 	});
+  return followers;
 }
 
 exports.getFollowing = function(username, callback) {
@@ -96,12 +97,12 @@ exports.getFollowing = function(username, callback) {
 	// If the query fails:
 	// Invoke callback(e, null)
   var getUser = "SELECT * FROM twitter.Users_dest_src WHERE dest=?";
+  var follows = [];
   app.db.execute(getUser, [ username ], function(e, result) {
     if (result.rows.length>0) {//checks if a result has been received
-      var follows = [];
-      for (int i =0; i<result.rows.length;i++)//scans through result and adds every element to "follows" list
+      for (i =0; i<result.rows.length;i++)//scans through result and adds every element to "follows" list
       {
-        follows.push(results.rows[i]);
+        follows.push(result.rows[i]);
       }
       callback(null, follows)
 		}
@@ -109,6 +110,7 @@ exports.getFollowing = function(username, callback) {
 			callback(e, null);
 		}
 	});
+  return follows;
 }
 
 /* Follow user */
