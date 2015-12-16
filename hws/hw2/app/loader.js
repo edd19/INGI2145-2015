@@ -52,7 +52,7 @@ async.series([
     function createUsersSrcDestTable(next) {
         var query = 'CREATE TABLE IF NOT EXISTS twitter.Users_src_dest (' +
                     'src varchar PRIMARY KEY,' +
-                    'dest varchat );'
+                    'dest varchar );'
         client.execute(query, next);
     },
     function createUsersDestSrcTable(next) {
