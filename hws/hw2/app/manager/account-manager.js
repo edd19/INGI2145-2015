@@ -80,7 +80,7 @@ exports.getFollowers = function(username, callback) {
       {
         followers.push(result.rows[i]);
       }
-      callback(null, followers)
+      callback(null, followers);
 		}
 		else{
 			callback(e, null);
@@ -129,7 +129,7 @@ exports.follow = function(follower, followed, callback)
   var insertDest = "INSERT INTO twitter.Users_dest_src (dest, src)" + "VALUES(?, ?";
   app.db.execute(insertSrc, [ follower, followed ], function(e, result) {
 		if (result.rows.length>0) {//checks if a result has been received
-			callback(null, followed)
+			callback(null, followed);
 		}
 		else{
 			callback(e, null);
@@ -138,7 +138,7 @@ exports.follow = function(follower, followed, callback)
 
   app.db.execute(insertDest, [ follower, followed ], function(e, result) {
 		if (result.rows.length>0) {//checks if a result has been received
-			callback(null, followed)
+			callback(null, followed);
 		}
 		else{
 			callback(e, null);
@@ -161,7 +161,7 @@ exports.unfollow = function(follower, followed, callback)
   var deleteDest = "DELETE FROM twitter.Users_dest_src WHERE dest=?, src=?";
   app.db.execute(deleteSrc, [ follower, followed ], function(e, result) {
 		if (result.rows.length>0) {//QUID POUR LE RESULTAT
-			callback(null, followed)
+			callback(null, followed);
 		}
 		else{
 			callback(e, null);
@@ -170,7 +170,7 @@ exports.unfollow = function(follower, followed, callback)
 
   app.db.execute(deleteDest, [ follower, followed ], function(e, result) {
 		if (result.rows.length>0) {//QUID POUR LE RESULTAT
-			callback(null, followed)
+			callback(null, followed);
 		}
 		else{
 			callback(e, null);
@@ -189,10 +189,10 @@ exports.isFollowing = function(follower, followed, callback)
 	// Invoke callback(null, follow) where follower is the username of person who follows another one.
 	// If the query fails:
 	// Invoke callback(e, null)
-  var lookup = "SELECT * FROM twitter.Users_dest_src WHERE dest=?, src=?"
+  var lookup = "SELECT * FROM twitter.Users_dest_src WHERE dest=?, src=?";
   app.db.execute(lookup, [ follower, followed ], function(e, result) {
 		if (result.rows.length>0) {//checks if a result has been received
-			callback(null, follower)
+			callback(null, follower);
 		}
 		else{
 			callback(e, null);
@@ -210,10 +210,10 @@ exports.getUserTimelines = function(username, callback) {
 	// Invoke callback(null, tweets) where tweets are the feed from all followed accounts.
 	// If the query fails:
 	// Invoke callback(e, null)
-  var getEverything = "SELECT tweetid, author, created_at, body FROM twitter.Timeline WHERE username=?"
-  app.db.execute(getInfo, [ username ], function(e, result) {
+  var getEverything = "SELECT tweetid, author, created_at, body FROM twitter.Timeline WHERE username=?";
+  app.db.execute(getEverything, [ username ], function(e, result) {
 		if (result.rows.length>0) {//checks if a result has been correctly received
-			callback(null, result.rows[0])
+			callback(null, result.rows[0]);
 		}
 		else{
 			callback(e, null);
@@ -228,10 +228,10 @@ exports.getUserlines = function(username, callback) {
 	// Invoke callback(null, tweets) where tweets are all the tweet of the account identified by username.
 	// If the query fails:
 	// Invoke callback(e, null)
-  var getEverything = "SELECT * FROM twitter.Tweets WHERE author=?"
+  var getEverything = "SELECT * FROM twitter.Tweets WHERE author=?";
   app.db.execute(getInfo, [ username ], function(e, result) {
 		if (result.rows.length>0) {//checks if a result has been correctly received
-			callback(null, result.rows[0])
+			callback(null, result.rows[0]);
 		}
 		else{
 			callback(e, null);
@@ -248,10 +248,10 @@ exports.getUserInfo = function(username, callback) {
 	// Invoke callback(null, userinfo).
 	// If the query fails:
 	// Invoke callback(e, null)
-  var getInfo= "SELECT name FROM twitter.Users WHERE username=?"
+  var getInfo= "SELECT name FROM twitter.Users WHERE username=?";
   app.db.execute(getInfo, [ username ], function(e, result) {
 		if (result.rows.length>0) {//checks if a result has been correctly received
-			callback(null, result.rows[0])
+			callback(null, result.rows[0]);
 		}
 		else{
 			callback(e, null);
