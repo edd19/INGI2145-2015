@@ -49,12 +49,14 @@ async.series([
                     'PRIMARY KEY (username, created_at) );'
         client.execute(query, next);
     },
+    //Where Src is followed by Dest
     function createUsersSrcDestTable(next) {
         var query = 'CREATE TABLE IF NOT EXISTS twitter.Users_src_dest (' +
                     'src varchar PRIMARY KEY,' +
                     'dest varchar );'
         client.execute(query, next);
     },
+    //Where Dest is following Src
     function createUsersDestSrcTable(next) {
         var query = 'CREATE TABLE IF NOT EXISTS twitter.Users_dest_src (' +
                     'dest varchar PRIMARY KEY,'+
