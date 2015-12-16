@@ -72,7 +72,7 @@ exports.getFollowers = function(username, callback) {
 	// If the query fails:
 	// Invoke callback(e, null)
 
-  var getUser = "SELECT * FROM twitter.Users_src_dest WHERE src=username";
+  var getUser = "SELECT * FROM twitter.Users_src_dest WHERE src=?";
   app.db.execute(getUser, [ username ], function(e, result) {
 		if (result.rows.length>0) {//checks if a result has been received
       var followers = [];
@@ -95,7 +95,7 @@ exports.getFollowing = function(username, callback) {
 	// Invoke callback(null, follows) where follows is a list of persons that are followed by the username
 	// If the query fails:
 	// Invoke callback(e, null)
-  var getUser = "SELECT * FROM twitter.Users_dest_src WHERE dest=username";
+  var getUser = "SELECT * FROM twitter.Users_dest_src WHERE dest=?";
   app.db.execute(getUser, [ username ], function(e, result) {
     if (result.rows.length>0) {//checks if a result has been received
       var follows = [];
@@ -123,8 +123,8 @@ exports.follow = function(follower, followed, callback)
 	// If the query fails:
 	// Invoke callback(e, null)
   async.parallel
-  var insertSrc = "INSERT INTO twitter.Users_src_dest (src, dest) " + "VALUES(followed, follower);";
-  var insertDest = "INSERT INTO twitter.Users_dest_src (dest, src)" + "VALUES(follower, followed";
+  var insertSrc = "INSERT INTO twitter.Users_src_dest (src, dest) " + "VALUES(?, ?);";
+  var insertDest = "INSERT INTO twitter.Users_dest_src (dest, src)" + "VALUES(?, ?";
   app.db.execute(insertSrc, [ follower, followed ], function(e, result) {
 		if (result.rows.length>0) {//checks if a result has been received
 			callback(null, followed)
@@ -155,8 +155,8 @@ exports.unfollow = function(follower, followed, callback)
 	// Invoke callback(null, follow) where follow is the username of person who is followed by follower
 	// If the query fails:
 	// Invoke callback(e, null)
-  var deleteSrc = "DELETE FROM twitter.Users_src_dest WHERE src=followed, dest=follower";
-  var deleteDest = "DELETE FROM twitter.Users_dest_src WHERE dest=follower, src=followed";
+  var deleteSrc = "DELETE FROM twitter.Users_src_dest WHERE src=?, dest=?";
+  var deleteDest = "DELETE FROM twitter.Users_dest_src WHERE dest=?, src=?";
   app.db.execute(deleteSrc, [ follower, followed ], function(e, result) {
 		if (result.rows.length>0) {//QUID POUR LE RESULTAT
 			callback(null, followed)
@@ -187,7 +187,7 @@ exports.isFollowing = function(follower, followed, callback)
 	// Invoke callback(null, follow) where follower is the username of person who follows another one.
 	// If the query fails:
 	// Invoke callback(e, null)
-  var lookup = "SELECT * FROM twitter.Users_dest_src WHERE dest=follower, src=followed"
+  var lookup = "SELECT * FROM twitter.Users_dest_src WHERE dest=?, src=?"
   app.db.execute(lookup, [ follower, followed ], function(e, result) {
 		if (result.rows.length>0) {//checks if a result has been received
 			callback(null, follower)
@@ -208,6 +208,20 @@ exports.getUserTimelines = function(username, callback) {
 	// Invoke callback(null, tweets) where tweets are the feed from all followed accounts.
 	// If the query fails:
 	// Invoke callback(e, null)
+  var getSrc = "SELECT * FROM twitter.Users_dest_src WHERE dest=?"
+  app.db.execute(getSrc, [ username ], function(e, result) {
+		if (result.rows.length>0) {//checks if a result has been received
+      var tweets = [];
+      for (int i =0; i<result.rows.length;i++)//scans through result and adds every element to "tweets" list
+      {
+        tweets.push(results.rows[i]);
+      }
+      callback(null, tweets)
+		}
+		else{
+			callback(e, null);
+		}
+	});
 }
 
 exports.getUserlines = function(username, callback) {
@@ -217,7 +231,7 @@ exports.getUserlines = function(username, callback) {
 	// Invoke callback(null, tweets) where tweets are all the tweet of the account identified by username.
 	// If the query fails:
 	// Invoke callback(e, null)
-  var getTweets = "SELECT * FROM twitter.tweets WHERE "
+  
 }
 
 /* get User tweets */
@@ -229,6 +243,15 @@ exports.getUserInfo = function(username, callback) {
 	// Invoke callback(null, userinfo).
 	// If the query fails:
 	// Invoke callback(e, null)
+  var getInfo= "SELECT name FROM twitter.Users WHERE username=?"
+  app.db.execute(getInfo, [ username ], function(e, result) {
+		if (result.rows.length>0) {//checks if a result has been correctly received
+			callback(null, result.rows[0])
+		}
+		else{
+			callback(e, null);
+		}
+	});
 }
 
 /* private encryption & validation methods */
