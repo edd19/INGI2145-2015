@@ -213,7 +213,7 @@ exports.getUserTimelines = function(username, callback) {
   var getEverything = "SELECT tweetid, author, created_at, body FROM twitter.Timeline WHERE username=?";
   app.db.execute(getEverything, [ username ], function(e, result) {
 		if (result.rows.length>0) {//checks if a result has been correctly received
-			callback(null, result.rows[0]);
+			callback(null, result.rows);
 		}
 		else{
 			callback(e, null);

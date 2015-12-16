@@ -6,6 +6,8 @@ var fs = require('fs');
 var byline = require('byline');
 var crypto    = require('crypto');
 var AM = require('./manager/account-manager.js');
+var booleanContinue = 0;
+var once = false;
 
 
 var client = new cassandra.Client( { contactPoints : [ '127.0.0.1' ] } );
@@ -54,15 +56,17 @@ async.series([
     //Where Src is followed by Dest
     function createUsersSrcDestTable(next) {
         var query = 'CREATE TABLE IF NOT EXISTS twitter.Users_src_dest (' +
-                    'src varchar PRIMARY KEY,' +
-                    'dest varchar );'
+                    'src varchar,' +
+                    'dest varchar,' +
+                    'PRIMARY KEY (src, dest) );'
         client.execute(query, next);
     },
     //Where Dest is following Src
     function createUsersDestSrcTable(next) {
         var query = 'CREATE TABLE IF NOT EXISTS twitter.Users_dest_src (' +
-                    'dest varchar PRIMARY KEY,'+
-                    'src varchar);'
+                    'dest varchar ,'+
+                    'src varchar,' +
+                    'PRIMARY KEY (dest, src) );'
         client.execute(query, next);
     },
 
@@ -104,7 +108,6 @@ async.series([
             + 'VALUES(?, ?);';
 
         var u = byline(fs.createReadStream(__dirname + '/users.json'));
-
         u.on('data', function(line) {
             try {
                 var obj = JSON.parse(line);
@@ -117,10 +120,10 @@ async.series([
                     for (var i in obj.followers) {
                       client.execute(upsertSrcDest,
                           [obj.username, obj.followers[i]],
-                          afterExecution('Error: ', 'Users_src_dest ' + obj.username + ' ' + i +' upserted.'));
+                          afterExecutionBis('Error: ', 'Users_src_dest ' + obj.username + ' ' + i +' upserted.'));
                       client.execute(upsertDestSrc,
                           [obj.followers[i], obj.username],
-                          afterExecution('Error: ', 'Users_dest_src '+ i + ' ' +obj.username + ' upserted.'));
+                          afterExecutionBis('Error: ', 'Users_dest_src '+ i + ' ' +obj.username + ' upserted.'));
                     }
                 });
             } catch (err) {
@@ -128,42 +131,6 @@ async.series([
             }
         });
         u.on('end', next);
-    },
-    function insertTweet(next)
-    {
-        var upsertTweet = 'INSERT INTO twitter.Tweets (tweetid, author, created_at, body) '
-            + 'VALUES(?, ?, ?, ?);';
-
-        var t = byline(fs.createReadStream(__dirname + '/sample.json'));
-
-        t.on('data', function(line) {
-        try {
-            var obj = JSON.parse(line);
-            obj.tweetid = uuid.v1();
-            obj.created_at = new Date(Date.parse(obj.created_at));
-            client.execute(upsertTweet,
-                    [obj.tweetid, obj.username, obj.created_at, obj.text],
-                    afterExecution('Error: ', 'Tweet ' + obj.tweetid + ' upserted.'));
-
-            //Gets the users following the user creating the tweet
-            var followers = AM.getFollowers(obj.username, function(err, o){
-                if (err != null)
-                    return console.log(err);
-            });
-            var upsertTimeline = 'INSERT INTO twitter.Timeline (username, tweetid, author, created_at, body) '
-                + 'VALUES(?, ?, ?, ?, ?);';
-            //Add the tweet to each follower timeline
-            for (var i in followers)
-            {
-              client.execute(upsertTimeline,
-                      [followers[i], obj.tweetid, obj.username, obj.created_at, obj.text],
-                      afterExecution('Error: ', 'Timeline ' + followers[i] + ' ' +obj.tweetid + ' upserted.'));
-            }
-        } catch (err) {
-            console.log("Error:", err);
-        }
-        });
-        t.on('end', next);
     }
 ], afterExecution('Error: ', 'Tables created.'));
 
@@ -175,4 +142,60 @@ function afterExecution(errorMessage, successMessage) {
             return console.log(successMessage);
         }
     }
+}
+
+function afterExecutionBis(errorMessage, successMessage) {
+    return function(err, result) {
+        booleanContinue++;
+        if (err) {
+          return console.log(errorMessage + err);
+        } else {
+          return console.log(successMessage);
+        }
+        if(booleanContinue >= 15900 && once == false){
+          once = true;
+          insertTweet();
+        }
+    }
+}
+function insertTweet()
+{
+  var upsertTweet = 'INSERT INTO twitter.Tweets (tweetid, author, created_at, body) '
+      + 'VALUES(?, ?, ?, ?);';
+
+  var t = byline(fs.createReadStream(__dirname + '/sample.json'));
+
+  t.on('data', function(line) {
+  try {
+      var obj = JSON.parse(line);
+      obj.tweetid = uuid.v1();
+      obj.created_at = new Date(Date.parse(obj.created_at));
+      client.execute(upsertTweet,
+              [obj.tweetid, obj.username, obj.created_at, obj.text],
+              afterExecution('Error: ', 'Tweet ' + obj.tweetid + ' upserted.'));
+
+      //Gets the users following the user creating the tweet
+      var getFollowers = "SELECT * FROM twitter.Users_src_dest WHERE src = ?";
+      var followers = [];
+      client.execute(getFollowers,
+            [ obj.username ], function(e, result) {
+        		if (result.rows.length>0) {//checks if a result has been received
+              for (i =0; i<result.rows.length;i++)//scans through result and adds every element to "followers" list
+              {
+                var upsertTimeline = 'INSERT INTO twitter.Timeline (username, tweetid, author, created_at, body) '
+                    + 'VALUES(?, ?, ?, ?, ?);';
+                client.execute(upsertTimeline,
+                      [result.rows[i].dest, obj.tweetid, obj.username, obj.created_at, obj.text],
+                      afterExecution('Error: ', 'Timeline ' + followers[i] + ' ' +obj.tweetid + ' upserted.'));
+              }
+        		}
+        	});
+
+  } catch (err) {
+      console.log("Error:", err);
+  }
+  });
+  t.on('end', function(){
+    console.log("Finish");
+  });
 }
