@@ -96,6 +96,10 @@ async.series([
 
         var upsertUser = 'INSERT INTO twitter.Users (username, name, pass) '
             + 'VALUES(?, ?, ?);';
+        var upsertSrcDest = 'INSERT INTO twitter.Users_src_dest (src, dest) '
+            + 'VALUES(?, ?);';
+        var upsertDestSrc = 'INSERT INTO twitter.Users_dest_src (dest, src) '
+            + 'VALUES(?, ?);';
 
         var u = byline(fs.createReadStream(__dirname + '/users.json'));
 
@@ -112,7 +116,12 @@ async.series([
         /////////
         // HINT: UPDATE USER RELATIONS TO USERS FOLLOWED BY USER obj
         /////////
-
+                      client.execute(upsertSrcDest,
+                          [obj.username, obj.followers[i]],
+                          afterExecution('Error: ', 'Users_src_dest ' + obj.username + ' ' + i +' upserted.'));
+                      client.execute(upsertDestSrc,
+                          [obj.followers[i], obj.username],
+                          afterExecution('Error: ', 'Users_dest_src '+ i + ' ' +obj.username + ' upserted.'));
                     }
                 });
             } catch (err) {
