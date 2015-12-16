@@ -5,7 +5,7 @@ var app = require('../app');
 var collectionName = "Users";
 var getUser = "SELECT * FROM twitter.Users WHERE username=?";
 
-var insertUser = "INSERT INTO twitter.Users (username, name, pass) " 
+var insertUser = "INSERT INTO twitter.Users (username, name, pass) "
             + "VALUES(?, ?, ?);";
 
 /* login validation methods */
@@ -71,6 +71,21 @@ exports.getFollowers = function(username, callback) {
 	// Invoke callback(null, followers) where followers is a list of usernames
 	// If the query fails:
 	// Invoke callback(e, null)
+
+  var getUser = "SELECT * FROM twitter.Users_src_dest WHERE src=username";
+  app.db.execute(getUser, [ username ], function(e, result) {
+		if (result.rows.length>0) {//checks if a result has been received
+      var followers = [];
+      for (int i =0; i<result.rows.length;i++)//scans through result and adds every element to "followers" list
+      {
+        followers.push(results.rows[i]);
+      }
+      callback(null, followers)
+		}
+		else{
+			callback(e, null);
+		}
+	});
 }
 
 exports.getFollowing = function(username, callback) {
@@ -80,6 +95,20 @@ exports.getFollowing = function(username, callback) {
 	// Invoke callback(null, follows) where follows is a list of persons that are followed by the username
 	// If the query fails:
 	// Invoke callback(e, null)
+  var getUser = "SELECT * FROM twitter.Users_dest_src WHERE dest=username";
+  app.db.execute(getUser, [ username ], function(e, result) {
+    if (result.rows.length>0) {//checks if a result has been received
+      var follows = [];
+      for (int i =0; i<result.rows.length;i++)//scans through result and adds every element to "follows" list
+      {
+        follows.push(results.rows[i]);
+      }
+      callback(null, follows)
+		}
+		else{
+			callback(e, null);
+		}
+	});
 }
 
 /* Follow user */
@@ -93,6 +122,26 @@ exports.follow = function(follower, followed, callback)
 	// Invoke callback(null, follow) where follow is the username of person who is followed by follower
 	// If the query fails:
 	// Invoke callback(e, null)
+  async.parallel
+  var insertSrc = "INSERT INTO twitter.Users_src_dest (src, dest) " + "VALUES(followed, follower);";
+  var insertDest = "INSERT INTO twitter.Users_dest_src (dest, src)" + "VALUES(follower, followed";
+  app.db.execute(insertSrc, [ follower, followed ], function(e, result) {
+		if (result.rows.length>0) {//checks if a result has been received
+			callback(null, followed)
+		}
+		else{
+			callback(e, null);
+		}
+	});
+
+  app.db.execute(insertDest, [ follower, followed ], function(e, result) {
+		if (result.rows.length>0) {//checks if a result has been received
+			callback(null, followed)
+		}
+		else{
+			callback(e, null);
+		}
+	});
 }
 
 /* Unfollow user */
@@ -106,6 +155,25 @@ exports.unfollow = function(follower, followed, callback)
 	// Invoke callback(null, follow) where follow is the username of person who is followed by follower
 	// If the query fails:
 	// Invoke callback(e, null)
+  var deleteSrc = "DELETE FROM twitter.Users_src_dest WHERE src=followed, dest=follower";
+  var deleteDest = "DELETE FROM twitter.Users_dest_src WHERE dest=follower, src=followed";
+  app.db.execute(deleteSrc, [ follower, followed ], function(e, result) {
+		if (result.rows.length>0) {//QUID POUR LE RESULTAT
+			callback(null, followed)
+		}
+		else{
+			callback(e, null);
+		}
+	});
+
+  app.db.execute(deleteDest, [ follower, followed ], function(e, result) {
+		if (result.rows.length>0) {//QUID POUR LE RESULTAT
+			callback(null, followed)
+		}
+		else{
+			callback(e, null);
+		}
+	});
 }
 
 
@@ -119,6 +187,15 @@ exports.isFollowing = function(follower, followed, callback)
 	// Invoke callback(null, follow) where follower is the username of person who follows another one.
 	// If the query fails:
 	// Invoke callback(e, null)
+  var lookup = "SELECT * FROM twitter.Users_dest_src WHERE dest=follower, src=followed"
+  app.db.execute(lookup, [ follower, followed ], function(e, result) {
+		if (result.rows.length>0) {//checks if a result has been received
+			callback(null, follower)
+		}
+		else{
+			callback(e, null);
+		}
+	});
 }
 
 
@@ -140,6 +217,7 @@ exports.getUserlines = function(username, callback) {
 	// Invoke callback(null, tweets) where tweets are all the tweet of the account identified by username.
 	// If the query fails:
 	// Invoke callback(e, null)
+  var getTweets = "SELECT * FROM twitter.tweets WHERE "
 }
 
 /* get User tweets */
