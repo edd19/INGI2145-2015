@@ -31,6 +31,7 @@ exports.newTweet = function(data, callback)
   // This function in the end must call callback(err, data)
 
   async.parallel([
+    // Save the tweet to the database
     function(){
       try {
         app.db.execute(upsertTweet,
@@ -40,6 +41,7 @@ exports.newTweet = function(data, callback)
           console.log("Error:", err);
         }
       },
+      //Parse the hashtag in the tweet if any for the analytics part
       function(){
 
       }
