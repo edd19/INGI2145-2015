@@ -148,9 +148,9 @@ function afterExecutionBis(errorMessage, successMessage) {
     return function(err, result) {
         booleanContinue++;
         if (err) {
-          return console.log(errorMessage + err);
+          //return console.log(errorMessage + err);
         } else {
-          return console.log(successMessage);
+          //return console.log(successMessage);
         }
         if(booleanContinue >= 15900 && once == false){
           once = true;
