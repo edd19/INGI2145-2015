@@ -44,7 +44,24 @@ exports.newTweet = function(data, callback)
       },
       //Parse the hashtag in the tweet if any for the analytics part
       function(){
-        var hashtags = findHashtags(data.body);
+          var hashtags = findHashtags(data.body);
+          console.log(hashtags);
+          var kafka = require('kafka-node'),
+          Producer = kafka.Producer,
+          client = new kafka.Client('localhost:2181/'),
+          producer = new Producer(client),
+          payloads = [
+            { topic: 'test', messages: hashtags, partition: 0 }
+          ];
+          producer.on('ready', function () {
+            producer.send(payloads, function (err, data) {});
+            console.log('send', data);
+            callback(null, '1');
+          });
+          producer.on('error', function(err){
+            console.error('error while connecting to kafka node: ', err);
+            callback(err, null);
+          });
       }
     ], function (err, results) { callback(err, data); });
   }
