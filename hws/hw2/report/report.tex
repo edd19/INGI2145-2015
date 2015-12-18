@@ -61,6 +61,23 @@ Ivan \textsc{Ahad} \\[3cm] % Your name
 
 \section{Explain the high level design of your solutions to the three scalability challenges of the application}
 
+\subsection*{Frontend Scaling}
+
+To use multiple cores on the machine, we forked clusters from one master cluster, as many clusters as there are cores on the CPU. By doing so, each slave cluster got its own core and its own load of data. This is an elegant way to scale the frontend as a new client is taken in charge by the less busy slave. \\
+
+
+
+\subsection*{Timeline Scaling}
+
+To scale the timeline, we used cassandra and the fanout on write model. This causes a lot of write when adding new data but the read becomes faster. We designed the database so that the data is easily accessed. We added 3 new tables, one for the timeline, and two to represents the edges (to indicate the relations between two accounts, see next section for more details). We didn't change the tweetable as we thought it was efficient like that. The timeline table contains the tweets that have to be shown for an account, this is done by putting for a specific account all of the tweets information with the author of each tweet (see next section). \\
+
+By doing so, we store a lot of data, but when the user wants some information, the information easily accessed and fastly obtained. In fact, there can be improvements, such as partitioning the database so that the timeline geographically stores the tweets closer to the user.\\ 
+
+Our write to the Cassandra Database is done by node.js. We know it isn't the best solution possible, as it would be better doing so with Kafka, as Kafka is relying, meaning there is no possible loss of data. However, as we will explain the the third section, we encountered issues using Kafka.
+
+\subsection*{Analytics Scaling}
+To implement an analytics top 10 of the most used hashtags in the tweets, we were going to use several technologies. We wanted to use Kafka, Spark and Memcached. First, Kafka sends all the different hashtags to Spark. Spark will then compute via an advanced MapReduce technique the ten most used hashtags, and sends the top 10 to be stored in Memcached. Memcached is used when the top 10 needs to be retrieved, as it is faster to get access to it than directly from the database. Since we focus on many writes and as few reads as possible, Cassandra was not the best option to store the top 10. 
+
 \section{A description of your database design and data model. In particular, how did you decide to store user relations and tweets}
 Here are the different database tables that we used for the project : 
 \begin{itemize}
@@ -72,8 +89,11 @@ Here are the different database tables that we used for the project :
 \end{itemize}
 
 \section{Describe the challenges you encountered, if any}
-As we struggled finding two other members to be in a team of 4, every aspect of the project was more challenging.
+As we struggled finding two other members to be in a team of 4, every aspect of the project was a bit more challenging.\\
+
+Our main challenge was to connect Kafka and Spark. We didn't manage to do so in time, as we tried to submit our assignment one day later to fix the problem but we still couldn't do it. Thus, the Analytics Scaling task isn't complete. 
 \section{Describe how to run your application}
 
+To run our application, you first have to run the kafka server on a localhost port 2181. You then have to load the database, by doing "nodejs loader.js". Afterwards, the database is filled, and you can run the app by doing "nodejs app.js". 
 
 \end{document}
