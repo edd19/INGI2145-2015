@@ -10,7 +10,7 @@
 	</div>
 </header>
 <div id="content">
-	<div class="wrapper">	
+	<div class="wrapper">
 	<div class="panel right">
 		<h1>Create a Tweet</h1>
 		<p>
@@ -28,7 +28,11 @@
 			<div style="margin-left: 27px;" ng-show="uploadError" class="alert alert-warning-alt" role="alert" >An error happened: {{errorMessage}}</div>
 		</p>
 	</div>
-	
+
+	<div class="panel">
+		 <%= top %>
+	</div>
+
 	<div id="ribbits" class="panel left">
 		<h1>Your feed ({{feedTitle}})</h1>
 		<div infinite-scroll='getTweets()'>

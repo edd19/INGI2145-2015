@@ -84,9 +84,6 @@ public class KafkaSparkStream {
                System.out.println(out);
                MemcachedClient c=new MemcachedClient(new InetSocketAddress("127.0.0.1", 11211));
                c.set("someKey", 600, out);
-               String myObject= (String) c.get("someKey");
-               System.out.println(myObject);
-
              }catch(IOException e){
                System.err.println("Error" + e.getMessage());
              }

@@ -3,6 +3,7 @@ var uuid = require('node-uuid');
 var async = require('async');
 var findHashtags = require('find-hashtags');
 
+
 var collectionName = "Tweets";
 
 var upsertTweet = 'INSERT INTO twitter.Tweets (tweetid, author, created_at, body) '
@@ -62,6 +63,8 @@ exports.newTweet = function(data, callback)
             console.error('error while connecting to kafka node: ', err);
             callback(err, null);
           });
+
+        
       }
     ], function (err, results) { callback(err, data); });
   }
