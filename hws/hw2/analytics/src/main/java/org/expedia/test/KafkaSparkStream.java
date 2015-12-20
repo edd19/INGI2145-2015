@@ -13,9 +13,14 @@ import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.apache.spark.api.java.function.*;
 import org.apache.spark.api.java.JavaPairRDD;
 
+import net.spy.memcached.MemcachedClient;
+import java.net.InetSocketAddress;
+import java.io.IOException;
+
 public class KafkaSparkStream {
     public static void main(String[] args) {
         JavaStreamingContext context = new JavaStreamingContext("local", "lz_omniture_stream", new Duration(60*1000));
+
 
         Map<String, Integer> topic = new HashMap<String, Integer>();
         Integer partition = Integer.valueOf(1);
@@ -75,7 +80,16 @@ public class KafkaSparkStream {
              for (Tuple2<Integer, String> t: rdd.take(10)) {
                out = out + t.toString() + "\n";
              }
-             System.out.println(out);
+             try{
+               System.out.println(out);
+               MemcachedClient c=new MemcachedClient(new InetSocketAddress("127.0.0.1", 11211));
+               c.set("someKey", 600, out);
+               String myObject= (String) c.get("someKey");
+               System.out.println(myObject);
+
+             }catch(IOException e){
+               System.err.println("Error" + e.getMessage());
+             }
              return null;
            }
          }
