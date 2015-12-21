@@ -4,6 +4,7 @@ var async = require('async');
 var findHashtags = require('find-hashtags');
 
 
+
 var collectionName = "Tweets";
 
 var upsertTweet = 'INSERT INTO twitter.Tweets (tweetid, author, created_at, body) '
@@ -39,6 +40,24 @@ exports.newTweet = function(data, callback)
         app.db.execute(upsertTweet,
           [data.tweetid, data.username, data.created_at, data.body],
           afterExecution('Error: ', 'Tweet ' + data.tweetid +' upserted.'));
+
+          //Gets the users following the user creating the tweet
+          var getFollowers = "SELECT * FROM twitter.Users_src_dest WHERE src = ?";
+          var followers = [];
+          app.db.execute(getFollowers,
+                [ data.username ], function(e, result) {
+            		if (result.rows.length>0) {//checks if a result has been received
+                  for (i =0; i<result.rows.length;i++)//scans through result and adds every element to "followers" list
+                  {
+                    var upsertTimeline = 'INSERT INTO twitter.Timeline (username, tweetid, author, created_at, body) '
+                        + 'VALUES(?, ?, ?, ?, ?);';
+                    app.db.execute(upsertTimeline,
+                          [result.rows[i].dest, data.tweetid, data.username, data.created_at, data.body],
+                          afterExecution('Error: ', 'Timeline ' + followers[i] + ' ' + data.tweetid + ' upserted.'));
+                  }
+            		}
+            	});
+
         } catch (err) {
           console.log("Error:", err);
         }
@@ -64,7 +83,7 @@ exports.newTweet = function(data, callback)
             callback(err, null);
           });
 
-        
+
       }
     ], function (err, results) { callback(err, data); });
   }
