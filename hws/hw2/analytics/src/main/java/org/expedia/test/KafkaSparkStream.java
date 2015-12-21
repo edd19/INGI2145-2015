@@ -19,7 +19,7 @@ import java.io.IOException;
 
 public class KafkaSparkStream {
     public static void main(String[] args) {
-        JavaStreamingContext context = new JavaStreamingContext("local[2]", "lz_omniture_stream", new Duration(60*1000));
+        JavaStreamingContext context = new JavaStreamingContext("local[4]", "lz_omniture_stream", new Duration(60*1000));
 
 
         Map<String, Integer> topic = new HashMap<String, Integer>();
@@ -55,8 +55,17 @@ public class KafkaSparkStream {
 
           });
 
+          JavaPairDStream<String, Integer> wordWindow = wordCounts.reduceByKeyAndWindow(
+            new Function2<Integer, Integer, Integer>() {
+              public Integer call(Integer i1, Integer i2) { return i1 + i2; }
+            },
+
+            new Duration(10 * 60 * 1000),
+            new Duration(1 * 60 * 1000)
+          );
+
           //Swap the key-value pairs for the counts (in order to sort hashtags by their counts)
-         JavaPairDStream<Integer, String> swappedCounts = wordCounts.mapToPair(
+         JavaPairDStream<Integer, String> swappedCounts = wordWindow.mapToPair(
            new PairFunction<Tuple2<String, Integer>, Integer, String>() {
              public Tuple2<Integer, String> call(Tuple2<String, Integer> in) {
                return in.swap();
