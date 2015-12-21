@@ -19,7 +19,7 @@ import java.io.IOException;
 
 public class KafkaSparkStream {
     public static void main(String[] args) {
-        JavaStreamingContext context = new JavaStreamingContext("local", "lz_omniture_stream", new Duration(60*1000));
+        JavaStreamingContext context = new JavaStreamingContext("local[2]", "lz_omniture_stream", new Duration(60*1000));
 
 
         Map<String, Integer> topic = new HashMap<String, Integer>();
